@@ -96,7 +96,7 @@ public:
     NativeInteger SpecilMS(const NativeInteger& v, const NativeInteger& q, const NativeInteger& Q, const uint32_t bitwidth) const;
 
 protected:
-    std::shared_ptr<LWEEncryptionScheme> LWEscheme{std::make_shared<LWEEncryptionScheme>()};
+    std::shared_ptr<LWEEncryptionScheme> LWEscheme = std::make_shared<LWEEncryptionScheme>();
     std::shared_ptr<RingGSWAccumulator> ACCscheme{nullptr};
     std::shared_ptr<RingLWEHomTrace> HomTrace{nullptr};
     std::shared_ptr<RingLWESchemeSwitch> SchemeSwitch{nullptr};
