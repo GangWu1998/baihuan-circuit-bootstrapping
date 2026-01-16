@@ -52,6 +52,9 @@ std::ostream& operator<<(std::ostream& s, BINFHE_PARAMSET f) {
         case STD128:
             s << "STD128";
             break;
+        case STD128_Binary:
+            s << "STD128_Binary";
+            break;
         case STD192:
             s << "STD192";
             break;

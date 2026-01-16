@@ -55,8 +55,8 @@ void BinFHEContext::GenerateBinFHEContext(BINFHE_PARAMSET set, bool arbFunc, uin
         std::string errMsg("ERROR: CGGI is the only supported method");
         OPENFHE_THROW(errMsg);
     }
-    if (set != STD128 && set != TOY) {
-        std::string errMsg("ERROR: STD128 and TOY are the only supported sets");
+    if (set != STD128 && set != STD128_Binary && set != TOY) {
+        std::string errMsg("ERROR: STD128, STD128_Binary, and TOY are the only supported sets");
         OPENFHE_THROW(errMsg);
     }
 
@@ -100,8 +100,9 @@ void BinFHEContext::GenerateBinFHEContext(BINFHE_PARAMSET set, bool arbFunc, uin
     qKS <<= 5;
 
     uint32_t n      = (set == TOY) ? 32 : 1305;
-    auto lweparams  = std::make_shared<LWECryptoParams>(n, ringDim, q, Q, qKS, 3.19, 32);
-    auto rgswparams = std::make_shared<RingGSWCryptoParams>(ringDim, Q, q, baseG, 23, method, 3.19, 0, UNIFORM_TERNARY,
+    const SecretKeyDist keyDist = (set == STD128_Binary) ? UNIFORM_BINARY : UNIFORM_TERNARY;
+    auto lweparams  = std::make_shared<LWECryptoParams>(n, ringDim, q, Q, qKS, 3.19, 32, keyDist);
+    auto rgswparams = std::make_shared<RingGSWCryptoParams>(ringDim, Q, q, baseG, 23, method, 3.19, 0, keyDist,
                                                             ((logQ != 11) && timeOptimization));
 
     m_params       = std::make_shared<BinFHECryptoParams>(lweparams, rgswparams);
@@ -123,6 +124,7 @@ void BinFHEContext::GenerateBinFHEContext(BINFHE_PARAMSET set, BINFHE_METHOD met
         { STD128_LMKCDEY,    { 28,     2048,         446, 1024, 1 << 13, STD_DEV, 1 << 5,    1 << 10,     0,     32,    10,  GAUSSIAN       } },
         { STD128_AP,         { 27,     2048,         503, 1024, 1 << 14, STD_DEV, 1 << 5,    1 <<  9,     0,     32,    10,  UNIFORM_TERNARY} },
         { STD128,            { 27,     2048,         503, 1024, 1 << 14, STD_DEV, 1 << 5,    1 <<  9,     0,     32,    10,  UNIFORM_TERNARY} },
+        { STD128_Binary,     { 27,     2048,         503, 1024, 1 << 14, STD_DEV, 1 << 5,    1 <<  9,     0,     32,    10,  UNIFORM_BINARY } },
         { STD192,            { 37,     4096,         805, 1024, 1 << 15, STD_DEV,     32,    1 << 13,     0,     32,    10,  UNIFORM_TERNARY} },
         { STD256,            { 29,     4096,         990, 2048, 1 << 14, STD_DEV, 1 << 7,    1 <<  8,     0,     46,    10,  UNIFORM_TERNARY} },
         { STD128Q,           { 25,     2048,         534, 1024, 1 << 14, STD_DEV,     32,    1 <<  7,     0,     32,    10,  UNIFORM_TERNARY} },

@@ -111,6 +111,15 @@ public:
         return m_Q;
     }
 
+    // Compatibility helpers for code paths that expect composite-NTT/RNS interfaces.
+    const NativeInteger& GetP() const {
+        return m_Q;
+    }
+
+    const NativeInteger& GetPQ() const {
+        return m_Q;
+    }
+
     const NativeInteger& Getq() const {
         return m_q;
     }
@@ -140,6 +149,14 @@ public:
     }
 
     const std::shared_ptr<ILNativeParams> GetPolyParams() const {
+        return m_polyParams;
+    }
+
+    bool IsCompositeNTT() const {
+        return false;
+    }
+
+    const std::shared_ptr<ILNativeParams> GetCompositePolyParams() const {
         return m_polyParams;
     }
 

@@ -100,16 +100,24 @@ RLWECiphertext CirBTSScheme::BootstrapManyLUT(const std::shared_ptr<CirBTSCrypto
     auto& polyParams = RGSWParams1->GetPolyParams();
     auto N = polyParams->GetRingDimension();
 
-    //Special modulus switching
+    // Special modulus switching (LMKCDEY uses raw a; only b is mod-switched).
     auto b = ct->GetB();
     NativeInteger b_ms = SpecilMS(b, NativeInteger(2 * N), q, bitwidth);
     auto a = ct->GetA();
     NativeVector a_ms(n, NativeInteger(2 * N));
+    const bool isLMKCDEY = (RGSWParams1->GetMethod() == BINFHE_METHOD::LMKCDEY);
     for (usint i = 0; i < n; ++i){
-        a_ms[i] = SpecilMS(a[i], NativeInteger(2 * N), q, bitwidth);
+        a_ms[i] = isLMKCDEY ? a[i] : SpecilMS(a[i], NativeInteger(2 * N), q, bitwidth);
     }
     auto ct_ms = LWECiphertextImpl(a_ms, b_ms);
     ct_ms.SetModulus(NativeInteger(2 * N));
+    if (isLMKCDEY) {
+        auto& a_ct = ct_ms.GetA();
+        const auto modMS = ct_ms.GetModulus();
+        for (usint i = 0; i < n; ++i) {
+            a_ct[i] = NativeInteger(0).ModSubFast(a_ct[i], modMS);
+        }
+    }
 
     //Generate original ACC
     std::vector<NativePoly> res(2);

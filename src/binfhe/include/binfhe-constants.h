@@ -56,6 +56,7 @@ enum BINFHE_PARAMSET {
                         // optimize runtime by finding a non-power-of-two n
     STD128,             // more than 128 bits of security for classical computer attacks -
                         // optimize runtime by finding a non-power-of-two n
+    STD128_Binary,      // STD128 parameters with UNIFORM_BINARY secret key distribution
     STD192,             // more than 192 bits of security for classical computer attacks -
                         // optimize runtime by finding a non-power-of-two n
     STD256,             // more than 256 bits of security for classical computer attacks -
