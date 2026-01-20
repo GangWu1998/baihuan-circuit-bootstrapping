@@ -104,6 +104,14 @@ public:
         return m_EXdigitsSS;
     }
 
+    uint32_t GetTraceShift() const {
+        return m_traceShift;
+    }
+
+    void SetTraceShift(uint32_t traceShift) {
+        m_traceShift = traceShift;
+    }
+
     const std::vector<NativeInteger>& GetHTPower() const {
         return m_HTpower;
     }
@@ -158,6 +166,8 @@ private:
     uint32_t m_digitsSS{};
     // Exact digits in scheme switching
     uint32_t m_EXdigitsSS{};
+    // Subring trace shift (reduces homtrace rounds when > 0)
+    uint32_t m_traceShift{};
 
     // A vector of powers of baseHT
     std::vector<NativeInteger> m_HTpower;

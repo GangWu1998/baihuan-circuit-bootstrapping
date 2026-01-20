@@ -6,16 +6,21 @@ void CirBTSCryptoParams::PreCompute() {
     //Generate LUT
     auto numLUT = m_RGSWParams2->GetDigitsGA();
     auto bitwidth = static_cast<uint32_t>(std::ceil(std::log2(numLUT)));
+    const uint32_t traceShift = m_RLWEParams ? m_RLWEParams->GetTraceShift() : 0;
+    const uint32_t step = (traceShift == 0) ? 1u : (1u << traceShift);
 
     auto Q = m_RGSWParams1->GetQ();
     auto N = m_RGSWParams1->GetN();
     const auto& Gpow = m_RGSWParams2->GetAGPower();
 
     NativeVector LUT(N, Q, NativeInteger(0));
-    for (uint32_t i = 0; i < (N >> (bitwidth + 1)); i++){
+    const uint32_t span = bitwidth + 1 + traceShift;
+    const uint32_t blocks = (span >= 31u) ? 0u : static_cast<uint32_t>(N >> span);
+    for (uint32_t i = 0; i < blocks; i++){
         for (uint32_t j = 0; j < numLUT; j++){
-            LUT[(i << bitwidth) + j].ModSubFastEq((Gpow[j] >> 1), Q);
-            LUT[(N >> 1) + (i << bitwidth) + j] = Gpow[j] >> 1;
+            const uint32_t base = static_cast<uint32_t>(((i << bitwidth) + j) * step);
+            LUT[base].ModSubFastEq((Gpow[j] >> 1), Q);
+            LUT[(N >> 1) + base] = Gpow[j] >> 1;
         }
     }
 

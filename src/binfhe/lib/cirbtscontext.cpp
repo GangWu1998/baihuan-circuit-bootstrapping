@@ -1,5 +1,8 @@
 #include "cirbtscontext.h"
+#include <cmath>
 #include <unordered_map>
+#include <cstdlib>
+#include <iostream>
 
 namespace lbcrypto{ 
 
@@ -7,10 +10,12 @@ void CirBTSContext::GenerateCirBTSContext(CirBTS_PARAMSET set, BINFHE_METHOD met
     constexpr double STD_DEV = 3.2;
 
     const std::unordered_map<CirBTS_PARAMSET, CirBTSContextParams> CircuitParamsMap({
-            //                          numberBits|cyclOrder|latticeParam|  mod|   stdDev| BaseEP|  DigitsEP| BaseHT| DigitsHT| BaseSS| DigitsSS|BaseCC| DigitsCC|keyDist0|keyDist2 
-        { STD128_CircuitBootstrap_CMUX_1, {54,      4096,      571,        1024,  STD_DEV,  1 << 26,   1,    1 << 13,   3,    1 << 28,    1,    1 << 3,  4,   UNIFORM_BINARY, UNIFORM_BINARY} },
-        { STD128_CircuitBootstrap_CMUX_2, {54,      4096,      571,        1024,  STD_DEV,  1 << 17,   2,    1 << 13,   3,    1 << 19,    2,    1 << 4,  4,   UNIFORM_BINARY, UNIFORM_BINARY} },
-        { STD128_CircuitBootstrap_CMUX_3, {54,      4096,      571,        1024,  STD_DEV,  1 << 17,   2,    1 << 8,   2,    1 << 19,    2,    1 << 5,  4,   UNIFORM_BINARY, UNIFORM_BINARY} },
+            //                          numberBits|cyclOrder|latticeParam|  mod|   stdDev| BaseEP|  DigitsEP| BaseHT| DigitsHT| BaseSS| DigitsSS|BaseCC| DigitsCC|TraceShift|keyDist0|keyDist2 
+        { STD128_CircuitBootstrap_CMUX_1, {54,      4096,      571,        1024,  STD_DEV,  1 << 26,   1,    1 << 13,   3,    1 << 28,    1,    1 << 3,  4,   0,   UNIFORM_BINARY, UNIFORM_BINARY} },
+        { STD128_CircuitBootstrap_CMUX_1_EQ, {54,   4096,      571,        1024,  STD_DEV,  1 << 26,   1,    1 << 13,   3,    1 << 13,    3,    1 << 3,  4,   0,   UNIFORM_BINARY, UNIFORM_BINARY} },
+        { STD128_CircuitBootstrap_CMUX_1_SUB1, {54, 4096,      571,        1024,  STD_DEV,  1 << 26,   1,    1 << 13,   3,    1 << 28,    1,    1 << 3,  4,   1,   UNIFORM_BINARY, UNIFORM_BINARY} },
+        { STD128_CircuitBootstrap_CMUX_2, {54,      4096,      571,        1024,  STD_DEV,  1 << 17,   2,    1 << 13,   3,    1 << 19,    2,    1 << 4,  4,   0,   UNIFORM_BINARY, UNIFORM_BINARY} },
+        { STD128_CircuitBootstrap_CMUX_3, {54,      4096,      571,        1024,  STD_DEV,  1 << 17,   2,    1 << 8,   2,    1 << 19,    2,    1 << 5,  4,   0,   UNIFORM_BINARY, UNIFORM_BINARY} },
     });
 
     auto search = CircuitParamsMap.find(set);
@@ -20,6 +25,16 @@ void CirBTSContext::GenerateCirBTSContext(CirBTS_PARAMSET set, BINFHE_METHOD met
     }
 
     CirBTSContextParams params = search->second;
+    if (const char* v = std::getenv("CIRBTS_TRACE_SHIFT"); v && *v) {
+        char* end = nullptr;
+        const unsigned long parsed = std::strtoul(v, &end, 10);
+        if (end != v && end && *end == '\0') {
+            params.TraceShift = static_cast<uint32_t>(parsed);
+            if (std::getenv("CIRBTS_TRACE_SHIFT_VERBOSE")) {
+                std::cout << "[CIRBTS] Override TraceShift=" << params.TraceShift << std::endl;
+            }
+        }
+    }
 
     //level 2 prime modulus 
     NativeInteger Q(LastPrime<NativeInteger>(params.numberBits, params.cyclOrder));
@@ -31,6 +46,13 @@ void CirBTSContext::GenerateCirBTSContext(CirBTS_PARAMSET set, BINFHE_METHOD met
                                                              method, params.stdDev, params.DigitsEP, params.keyDist2, false, 10);
     auto rlweparams = std::make_shared<RLWECryptoParams>(params.cyclOrder, ringDim, Q, params.stdDev, params.BaseHT,
                                                         params.DigitsHT, params.BaseSS, params.DigitsSS, params.keyDist2);
+    if (params.TraceShift != 0) {
+        const uint32_t logN = static_cast<uint32_t>(std::log2(static_cast<double>(ringDim)));
+        if (params.TraceShift >= logN) {
+            OPENFHE_THROW(config_error, "TraceShift must be smaller than log2(N)");
+        }
+        rlweparams->SetTraceShift(params.TraceShift);
+    }
     auto rgswparams2 = std::make_shared<RingGSWCryptoParams>(ringDim, Q, params.mod, params.BaseCC, params.mod,
                                                              method, params.stdDev, params.DigitsCC, params.keyDist2, false, 10);
     m_params = std::make_shared<CirBTSCryptoParams>(lweparams, rgswparams1, rlweparams, rgswparams2);

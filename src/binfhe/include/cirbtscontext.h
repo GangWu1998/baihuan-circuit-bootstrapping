@@ -39,6 +39,7 @@ struct CirBTSContextParams{
     usint DigitsSS; //gadgt length for the scheme switching
     usint BaseCC; //gadget base for the circuit computation
     usint DigitsCC; //gadget length for the circuit computation
+    usint TraceShift; // subring shift (reduces HomTrace rounds when > 0)
   
     SecretKeyDist keyDist0;// key distribution in level 0
     SecretKeyDist keyDist2;// key distribution in level 2  

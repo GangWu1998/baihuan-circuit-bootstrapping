@@ -52,9 +52,11 @@ RGSWCiphertext CirBTSScheme::CircuitBootstrap(const std::shared_ptr<CirBTSCrypto
     std::vector<NativePoly> RLWE = {acc->GetElements()[0], acc->GetElements()[1]};
     MV_RLWEs[0] = RLWECiphertextImpl(RLWE);
 
+    const uint32_t traceShift = RLWEParams->GetTraceShift();
+    const uint32_t step = (traceShift == 0) ? 1u : (1u << traceShift);
     for(uint32_t i = 1; i < numLUT; i++){
-        //acc*X^{-i}
-        auto temp = params->GetMonomial(i);
+        //acc*X^{-(i*step)}
+        auto temp = params->GetMonomial(i * step);
         std::vector<NativePoly> RLWE = {acc->GetElements()[0] * temp, acc->GetElements()[1] * temp};
         MV_RLWEs[i] = RLWECiphertextImpl(RLWE);
     }

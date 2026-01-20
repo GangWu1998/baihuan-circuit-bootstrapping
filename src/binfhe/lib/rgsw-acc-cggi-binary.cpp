@@ -1,5 +1,6 @@
 #include "rgsw-acc-cggi-binary.h"
 
+#include <cstdlib>
 #include <string>
 
 namespace lbcrypto {
@@ -9,14 +10,32 @@ RingGSWACCKey RingGSWAccumulatorCGGI2::KeyGenAcc(const std::shared_ptr<RingGSWCr
                                                 const NativePoly& skNTT, ConstLWEPrivateKey& LWEsk) const {
     auto sv    = LWEsk->GetElement();
     uint32_t n = sv.GetLength();
-    auto ek    = std::make_shared<RingGSWACCKeyImpl>(1, 1, n);
-    auto& ek00 = (*ek)[0][0];
+    uint32_t multibit = 0;
+    if (const char* v = std::getenv("CIRBTS_EVALACC_MULTIBIT"); v && *v) {
+        char* end = nullptr;
+        const unsigned long parsed = std::strtoul(v, &end, 10);
+        if (end != v && end && *end == '\0') {
+            multibit = static_cast<uint32_t>(parsed);
+        }
+    }
+    const bool use_multibit2 = (multibit == 2);
+    auto ek                  = std::make_shared<RingGSWACCKeyImpl>(1, use_multibit2 ? 2 : 1, n);
+    auto& ek00               = (*ek)[0][0];
+    std::vector<RingGSWEvalKey>* ek01 = use_multibit2 ? &(*ek)[0][1] : nullptr;
 
     // handles binary secret
 #pragma omp parallel for num_threads(OpenFHEParallelControls.GetThreadLimit(n))
     for (uint32_t i = 0; i < n; ++i) {
-        auto s  = sv[i].ConvertToInt();
-        ek00[i] = KeyGenCGGI(params, skNTT, s);
+        const auto s0 = sv[i].ConvertToInt();
+        ek00[i] = KeyGenCGGI(params, skNTT, s0);
+        if (use_multibit2) {
+            uint32_t prod = 0;
+            if (((i & 1u) == 0u) && (i + 1u < n)) {
+                const auto s1 = sv[i + 1u].ConvertToInt();
+                prod = (s0 == 1 && s1 == 1) ? 1u : 0u;
+            }
+            (*ek01)[i] = KeyGenCGGI(params, skNTT, prod);
+        }
     }
     return ek;
 }

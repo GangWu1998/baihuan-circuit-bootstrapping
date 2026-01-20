@@ -7,6 +7,12 @@ RLWEHomTraceKey RingLWEHomTrace::KeyGenHT(const std::shared_ptr<RLWECryptoParams
 
     //the number of automorphism
     uint32_t numAuto = static_cast<uint32_t>(log2(N));
+    const uint32_t traceShift = params->GetTraceShift();
+    if (traceShift < numAuto) {
+        numAuto -= traceShift;
+    } else {
+        numAuto = 0;
+    }
 
     //Homtarce key is composed with numAuto Auto keys and each Auto key is a RGSW ciphertext
     RLWEHomTraceKey ek = std::make_shared<RLWEHomTraceKeyImpl>(1, 1, numAuto);
@@ -22,6 +28,12 @@ void RingLWEHomTrace::EvalHT(const std::shared_ptr<RLWECryptoParams>& params, Co
     auto Q{params->GetQ()};
     //the number of automorphism
     uint32_t numAuto = static_cast<uint32_t>(log2(N));
+    const uint32_t traceShift = params->GetTraceShift();
+    if (traceShift < numAuto) {
+        numAuto -= traceShift;
+    } else {
+        numAuto = 0;
+    }
 
     for (uint32_t i = 0; i < numAuto; i++){
         //copy ct
