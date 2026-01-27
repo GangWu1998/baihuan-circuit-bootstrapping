@@ -10,6 +10,7 @@
 #include "rlwe-schemeswitchkey.h"
 #include "rgsw-acc.h"
 #include "rgsw-acc-cggi.h"
+#include "rgsw-acc-dm.h"
 #include "rgsw-acc-lmkcdey.h"
 #include "rlwe-homtrace.h"
 #include "rlwe-schemeswitch.h"
@@ -43,6 +44,8 @@ public:
     explicit CirBTSScheme(BINFHE_METHOD method) {
         if (method == GINX)
             ACCscheme = std::make_shared<RingGSWAccumulatorCGGI2>();
+        else if (method == AP)
+            ACCscheme = std::make_shared<RingGSWAccumulatorDM>();
         else if (method == LMKCDEY)
             ACCscheme = std::make_shared<RingGSWAccumulatorLMKCDEY>();
 

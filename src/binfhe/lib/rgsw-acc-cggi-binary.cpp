@@ -5,19 +5,32 @@
 
 namespace lbcrypto {
 
+namespace {
+uint32_t GetEvalAccMultibit() {
+    if (const char* v = std::getenv("CIRBTS_PBS_MULTIBIT"); v && *v) {
+        char* end = nullptr;
+        const unsigned long parsed = std::strtoul(v, &end, 10);
+        if (end != v && end && *end == '\0') {
+            return static_cast<uint32_t>(parsed);
+        }
+    }
+    if (const char* v = std::getenv("CIRBTS_EVALACC_MULTIBIT"); v && *v) {
+        char* end = nullptr;
+        const unsigned long parsed = std::strtoul(v, &end, 10);
+        if (end != v && end && *end == '\0') {
+            return static_cast<uint32_t>(parsed);
+        }
+    }
+    return 2;
+}
+}  // namespace
+
 // Key generation as described in Section 4 of https://eprint.iacr.org/2014/816
 RingGSWACCKey RingGSWAccumulatorCGGI2::KeyGenAcc(const std::shared_ptr<RingGSWCryptoParams>& params,
                                                 const NativePoly& skNTT, ConstLWEPrivateKey& LWEsk) const {
     auto sv    = LWEsk->GetElement();
     uint32_t n = sv.GetLength();
-    uint32_t multibit = 0;
-    if (const char* v = std::getenv("CIRBTS_EVALACC_MULTIBIT"); v && *v) {
-        char* end = nullptr;
-        const unsigned long parsed = std::strtoul(v, &end, 10);
-        if (end != v && end && *end == '\0') {
-            multibit = static_cast<uint32_t>(parsed);
-        }
-    }
+    uint32_t multibit = GetEvalAccMultibit();
     const bool use_multibit2 = (multibit == 2);
     auto ek                  = std::make_shared<RingGSWACCKeyImpl>(1, use_multibit2 ? 2 : 1, n);
     auto& ek00               = (*ek)[0][0];

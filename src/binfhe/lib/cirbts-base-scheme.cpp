@@ -46,7 +46,7 @@ RGSWCiphertext CirBTSScheme::CircuitBootstrap(const std::shared_ptr<CirBTSCrypto
         acc->GetElements()[1][i].ModAddEq(temp.ModMulEq(N_inv, Q), Q);
     }
     acc->GetElements()[1].SetFormat(EVALUATION);
-    
+
     auto& RLWEParams = params->GetRLWEParams();
     std::vector<RLWECiphertextImpl> MV_RLWEs(numLUT);
     std::vector<NativePoly> RLWE = {acc->GetElements()[0], acc->GetElements()[1]};
