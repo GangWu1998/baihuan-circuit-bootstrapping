@@ -32,9 +32,16 @@ RingGSWACCKey RingGSWAccumulatorCGGI2::KeyGenAcc(const std::shared_ptr<RingGSWCr
     uint32_t n = sv.GetLength();
     uint32_t multibit = GetEvalAccMultibit();
     const bool use_multibit2 = (multibit == 2);
-    auto ek                  = std::make_shared<RingGSWACCKeyImpl>(1, use_multibit2 ? 2 : 1, n);
+    const bool use_multibit3 = (multibit == 3);
+    const uint32_t dim2 = use_multibit2 ? 2u : (use_multibit3 ? 4u : 1u);
+    auto ek                  = std::make_shared<RingGSWACCKeyImpl>(1, dim2, n);
     auto& ek00               = (*ek)[0][0];
     std::vector<RingGSWEvalKey>* ek01 = use_multibit2 ? &(*ek)[0][1] : nullptr;
+    std::vector<RingGSWEvalKey>* ek02 = use_multibit3 ? &(*ek)[0][2] : nullptr;
+    std::vector<RingGSWEvalKey>* ek03 = use_multibit3 ? &(*ek)[0][3] : nullptr;
+    if (use_multibit3) {
+        ek01 = &(*ek)[0][1];
+    }
 
     // handles binary secret
 #pragma omp parallel for num_threads(OpenFHEParallelControls.GetThreadLimit(n))
@@ -48,6 +55,22 @@ RingGSWACCKey RingGSWAccumulatorCGGI2::KeyGenAcc(const std::shared_ptr<RingGSWCr
                 prod = (s0 == 1 && s1 == 1) ? 1u : 0u;
             }
             (*ek01)[i] = KeyGenCGGI(params, skNTT, prod);
+        } else if (use_multibit3) {
+            uint32_t s1 = 0;
+            uint32_t s2 = 0;
+            if (i + 1u < n) {
+                s1 = (sv[i + 1u].ConvertToInt() == 1) ? 1u : 0u;
+            }
+            if (i + 2u < n) {
+                s2 = (sv[i + 2u].ConvertToInt() == 1) ? 1u : 0u;
+            }
+            const uint32_t b0 = (s0 == 1) ? 1u : 0u;
+            const uint32_t prod01 = b0 & s1;
+            const uint32_t prod02 = b0 & s2;
+            const uint32_t prod012 = b0 & s1 & s2;
+            (*ek01)[i] = KeyGenCGGI(params, skNTT, prod01);
+            (*ek02)[i] = KeyGenCGGI(params, skNTT, prod02);
+            (*ek03)[i] = KeyGenCGGI(params, skNTT, prod012);
         }
     }
     return ek;
