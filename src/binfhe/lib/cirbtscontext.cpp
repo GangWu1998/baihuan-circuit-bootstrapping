@@ -27,16 +27,30 @@ void CirBTSContext::GenerateCirBTSContext(CirBTS_PARAMSET set, BINFHE_METHOD met
     }
 
     CirBTSContextParams params = search->second;
-    if (const char* v = std::getenv("CIRBTS_TRACE_SHIFT"); v && *v) {
+    const bool verbose_overrides = std::getenv("CIRBTS_PARAM_VERBOSE") != nullptr;
+    auto override_usint = [&](const char* env_name, usint& target) {
+        const char* v = std::getenv(env_name);
+        if (!v || !*v) {
+            return;
+        }
         char* end = nullptr;
         const unsigned long parsed = std::strtoul(v, &end, 10);
         if (end != v && end && *end == '\0') {
-            params.TraceShift = static_cast<uint32_t>(parsed);
-            if (std::getenv("CIRBTS_TRACE_SHIFT_VERBOSE")) {
-                std::cout << "[CIRBTS] Override TraceShift=" << params.TraceShift << std::endl;
+            target = static_cast<usint>(parsed);
+            if (verbose_overrides) {
+                std::cout << "[CIRBTS] Override " << env_name << "=" << target << std::endl;
             }
         }
-    }
+    };
+    override_usint("CIRBTS_BASE_EP", params.BaseEP);
+    override_usint("CIRBTS_DIGITS_EP", params.DigitsEP);
+    override_usint("CIRBTS_BASE_HT", params.BaseHT);
+    override_usint("CIRBTS_DIGITS_HT", params.DigitsHT);
+    override_usint("CIRBTS_BASE_SS", params.BaseSS);
+    override_usint("CIRBTS_DIGITS_SS", params.DigitsSS);
+    override_usint("CIRBTS_BASE_CC", params.BaseCC);
+    override_usint("CIRBTS_DIGITS_CC", params.DigitsCC);
+    override_usint("CIRBTS_TRACE_SHIFT", params.TraceShift);
 
     //level 2 prime modulus 
     NativeInteger Q(LastPrime<NativeInteger>(params.numberBits, params.cyclOrder));
