@@ -32,7 +32,7 @@ RingGSWACCKey RingGSWAccumulatorCGGI2::KeyGenAcc(const std::shared_ptr<RingGSWCr
     uint32_t n = sv.GetLength();
     uint32_t multibit = GetEvalAccMultibit();
     const bool use_multibit2 = (multibit == 2);
-    const bool use_multibit3 = (multibit == 3);
+    const bool use_multibit3 = (multibit == 3 || multibit == 4);
     const uint32_t dim2 = use_multibit2 ? 2u : (use_multibit3 ? 4u : 1u);
     auto ek                  = std::make_shared<RingGSWACCKeyImpl>(1, dim2, n);
     auto& ek00               = (*ek)[0][0];
@@ -164,8 +164,13 @@ void RingGSWAccumulatorCGGI2::SignedDigitDecompose2(const std::shared_ptr<RingGS
 
     //the length of approximate decomposition
     auto digits = params->GetDigitsGA();
-    //the bits should be ignored
-    uint32_t ignore_bits = 54 - digits * gBits;
+    // The bits should be ignored. Clamp to zero when the approximate
+    // decomposition covers more bits than Q; large bases such as 2^25
+    // would otherwise underflow and corrupt the decomposition.
+    int ignore_bits = static_cast<int>(Q.GetMSB()) - static_cast<int>(digits) * static_cast<int>(gBits);
+    if (ignore_bits < 0) {
+        ignore_bits = 0;
+    }
     //the bits should be remained
     auto gBitsMaxBits{static_cast<NativeInteger::SignedNativeInt>(NativeInteger::MaxBits() - ignore_bits)};
     // approximate gadget decomposition is used;
@@ -180,11 +185,15 @@ void RingGSWAccumulatorCGGI2::SignedDigitDecompose2(const std::shared_ptr<RingGS
         auto t1{input[1][k].ConvertToInt<BasicInteger>()};
         auto d1{static_cast<NativeInteger::SignedNativeInt>(t1 < QHalf ? t1 : t1 - Q_int)};
 
-        auto r0 = (d0 << gBitsMaxBits) >> gBitsMaxBits;
-        d0 = (d0 - r0) >> ignore_bits;
+        auto r0 = static_cast<NativeInteger::SignedNativeInt>(0);
+        auto r1 = static_cast<NativeInteger::SignedNativeInt>(0);
+        if (ignore_bits != 0) {
+            r0 = (d0 << gBitsMaxBits) >> gBitsMaxBits;
+            d0 = (d0 - r0) >> ignore_bits;
 
-        auto r1 = (d1 << gBitsMaxBits) >> gBitsMaxBits;
-        d1 = (d1 - r1) >> ignore_bits;
+            r1 = (d1 << gBitsMaxBits) >> gBitsMaxBits;
+            d1 = (d1 - r1) >> ignore_bits;
+        }
 
 
         for (uint32_t d{0}; d < digitsG2; d += 2) {

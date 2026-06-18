@@ -115,6 +115,7 @@ enum CirBTS_PARAMSET {
     STD128_CircuitBootstrap_CMUX_1_EQ,
     STD128_CircuitBootstrap_CMUX_1_SUB1,
     STD128_CircuitBootstrap_CMUX_1_MB2,
+    STD128_CircuitBootstrap_CMUX_5,
 };
 
 /**

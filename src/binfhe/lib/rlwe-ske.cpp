@@ -81,7 +81,10 @@ void RLWEEncryptionScheme::SignedDigitDecompose(const std::shared_ptr<RLWECrypto
     auto gBits{static_cast<NativeInteger::SignedNativeInt>(__builtin_ctz(base))};
 
     //the bits should be ignored
-    uint32_t ignore_bits = 54 - digits * gBits;
+    int ignore_bits = static_cast<int>(Q.GetMSB()) - static_cast<int>(digits) * static_cast<int>(gBits);
+    if (ignore_bits < 0) {
+        ignore_bits = 0;
+    }
     //the bits should be remained
     auto gBitsMaxBits{static_cast<NativeInteger::SignedNativeInt>(NativeInteger::MaxBits() - ignore_bits)};
     // approximate gadget decomposition is used;
@@ -99,10 +102,14 @@ void RLWEEncryptionScheme::SignedDigitDecompose(const std::shared_ptr<RLWECrypto
         auto t1{ctb[k].ConvertToInt<BasicInteger>()};
         auto d1{static_cast<NativeInteger::SignedNativeInt>(t1 < QHalf ? t1 : t1 - Q_int)};
         
-        auto r0 = (d0 << gBitsMaxBits) >> gBitsMaxBits;
-        d0 = (d0 - r0) >> ignore_bits;
-        auto r1 = (d1 << gBitsMaxBits) >> gBitsMaxBits;
-        d1 = (d1 - r1) >> ignore_bits;
+        auto r0 = static_cast<NativeInteger::SignedNativeInt>(0);
+        auto r1 = static_cast<NativeInteger::SignedNativeInt>(0);
+        if (ignore_bits != 0) {
+            r0 = (d0 << gBitsMaxBits) >> gBitsMaxBits;
+            d0 = (d0 - r0) >> ignore_bits;
+            r1 = (d1 << gBitsMaxBits) >> gBitsMaxBits;
+            d1 = (d1 - r1) >> ignore_bits;
+        }
 
         for (uint32_t d{0}; d < digitsG2; d += 2) {
             r0 = (d0 << gBitsMaxBits0) >> gBitsMaxBits0;

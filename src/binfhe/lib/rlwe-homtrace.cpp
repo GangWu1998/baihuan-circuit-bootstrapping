@@ -57,7 +57,10 @@ void RingLWEHomTrace::SignedDigitDecompose(const std::shared_ptr<RLWECryptoParam
     uint32_t digitsHT{params->GetDigitsHTA()};
 
     //ignore bits
-    uint32_t ignore_bits = 54 - gBits * digitsHT;
+    int ignore_bits = static_cast<int>(Q.GetMSB()) - static_cast<int>(gBits) * static_cast<int>(digitsHT);
+    if (ignore_bits < 0) {
+        ignore_bits = 0;
+    }
     //the number of bits of approximate decomposition remain
     auto gBitsMaxBits{static_cast<NativeInteger::SignedNativeInt>(NativeInteger::MaxBits() - ignore_bits)};
     uint32_t N{params->GetN()};
@@ -71,8 +74,10 @@ void RingLWEHomTrace::SignedDigitDecompose(const std::shared_ptr<RLWECryptoParam
         //the bits should ignore
         auto r0 = d0;
     
-        r0 = (d0 << gBitsMaxBits) >> gBitsMaxBits;
-        d0 = (d0 - r0) >> ignore_bits;
+        if (ignore_bits != 0) {
+            r0 = (d0 << gBitsMaxBits) >> gBitsMaxBits;
+            d0 = (d0 - r0) >> ignore_bits;
+        }
         
         for (uint32_t d{0}; d < digitsHT; ++d){
             r0 = (d0 << gBitsMaxBits0) >> gBitsMaxBits0;

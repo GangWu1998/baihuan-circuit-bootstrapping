@@ -36,7 +36,7 @@ void RLWECryptoParams::PreCompute(bool signEval) {
 
     m_ASSpower.reserve(m_digitsSS);
     vTemp = NativeInteger(static_cast<BasicInteger>(std::ceil(m_Q.ConvertToDouble() / m_SSpower[m_digitsSS].ConvertToDouble())));
-    for(uint32_t i = 0; i < m_digitsHT; ++i){
+    for(uint32_t i = 0; i < m_digitsSS; ++i){
         m_ASSpower.push_back(vTemp);
         vTemp = vTemp.ModMulFast(NativeInteger(m_baseSS), m_Q);
     }

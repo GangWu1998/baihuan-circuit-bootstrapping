@@ -65,16 +65,21 @@ void RingGSWCryptoParams::PreCompute(bool signEval) {
         }
     }
     else {
-        m_Gpower.reserve(m_digitsG);
+        const uint32_t powerCount = std::max(m_digitsG, m_digitsGA + 1);
+        m_Gpower.reserve(powerCount);
         NativeInteger vTemp{1};
-        for (uint32_t i = 0; i < m_digitsG; ++i) {
+        for (uint32_t i = 0; i < powerCount; ++i) {
             m_Gpower.push_back(vTemp);
             vTemp = vTemp.ModMulFast(NativeInteger(m_baseG), m_Q);
         }
     }
 
     m_AGpower.reserve(m_digitsGA);
-    NativeInteger vTemp = NativeInteger(static_cast<BasicInteger>(std::ceil(m_Q.ConvertToDouble() / m_Gpower[m_digitsGA].ConvertToDouble())));
+    const long double approxRange = std::pow(static_cast<long double>(m_baseG), static_cast<int>(m_digitsGA));
+    const long double qValue      = static_cast<long double>(m_Q.ConvertToDouble());
+    NativeInteger vTemp = (approxRange >= qValue) ?
+                          NativeInteger(1) :
+                          NativeInteger(static_cast<BasicInteger>(std::ceil(qValue / approxRange)));
     for (uint32_t i = 0; i < m_digitsGA; ++i) {
         m_AGpower.push_back(vTemp);
         vTemp = vTemp.ModMulFast(NativeInteger(m_baseG), m_Q);

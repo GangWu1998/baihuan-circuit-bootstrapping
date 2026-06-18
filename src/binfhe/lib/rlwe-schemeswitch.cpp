@@ -70,7 +70,10 @@ void RingLWESchemeSwitch::SignedDigitDecompose(const std::shared_ptr<RLWECryptoP
     uint32_t digitsSS{params->GetDigitsSSA()};
 
     //ignore bits
-    uint32_t ignore_bits = 54 - digitsSS * gBits;
+    int ignore_bits = static_cast<int>(params->GetQ().GetMSB()) - static_cast<int>(digitsSS) * static_cast<int>(gBits);
+    if (ignore_bits < 0) {
+        ignore_bits = 0;
+    }
     //the number of bits of approximate decomposition remain
     auto gBitsMaxBits{static_cast<NativeInteger::SignedNativeInt>(NativeInteger::MaxBits() - ignore_bits)};
     

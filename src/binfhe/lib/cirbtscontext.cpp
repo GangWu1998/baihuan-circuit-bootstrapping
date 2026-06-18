@@ -11,13 +11,15 @@ void CirBTSContext::GenerateCirBTSContext(CirBTS_PARAMSET set, BINFHE_METHOD met
 
     const std::unordered_map<CirBTS_PARAMSET, CirBTSContextParams> CircuitParamsMap({
             //                          numberBits|cyclOrder|latticeParam|  mod|   stdDev| BaseEP|  DigitsEP| BaseHT| DigitsHT| BaseSS| DigitsSS|BaseCC| DigitsCC|TraceShift|keyDist0|keyDist2 
-        { STD128_CircuitBootstrap_CMUX_1, {54,      4096,      571,        1024,  STD_DEV,  1 << 26,   1,    1 << 13,   3,    1 << 28,    1,    1 << 3,  4,   0,   UNIFORM_BINARY, UNIFORM_BINARY} },
+        { STD128_CircuitBootstrap_CMUX_1, {54,      4096,      571,        1024,  STD_DEV,  1 << 26,   1,    1 << 17,   2,    1 << 28,    1,    1 << 3,   4,   0,   UNIFORM_BINARY, UNIFORM_BINARY} },
         // Multi-bit PBS (k=2) experimental paramset; same security as CMUX_1, uses separate key path.
-        { STD128_CircuitBootstrap_CMUX_1_MB2, {54,   4096,      571,        1024,  STD_DEV,  1 << 26,   1,    1 << 13,   3,    1 << 28,    1,    1 << 3,  4,   0,   UNIFORM_BINARY, UNIFORM_BINARY} },
+        { STD128_CircuitBootstrap_CMUX_1_MB2, {54,   4096,      571,        1024,  STD_DEV,  1 << 26,   1,    1 << 17,   2,    1 << 28,    1,    1 << 3,   4,   0,   UNIFORM_BINARY, UNIFORM_BINARY} },
         { STD128_CircuitBootstrap_CMUX_1_EQ, {54,   4096,      571,        1024,  STD_DEV,  1 << 26,   1,    1 << 13,   3,    1 << 13,    3,    1 << 3,  4,   0,   UNIFORM_BINARY, UNIFORM_BINARY} },
-        { STD128_CircuitBootstrap_CMUX_1_SUB1, {54, 4096,      571,        1024,  STD_DEV,  1 << 26,   1,    1 << 13,   3,    1 << 28,    1,    1 << 3,  4,   1,   UNIFORM_BINARY, UNIFORM_BINARY} },
-        { STD128_CircuitBootstrap_CMUX_2, {54,      4096,      571,        1024,  STD_DEV,  1 << 17,   2,    1 << 13,   3,    1 << 19,    2,    1 << 4,  4,   0,   UNIFORM_BINARY, UNIFORM_BINARY} },
-        { STD128_CircuitBootstrap_CMUX_3, {54,      4096,      571,        1024,  STD_DEV,  1 << 17,   2,    1 << 8,   2,    1 << 19,    2,    1 << 5,  4,   0,   UNIFORM_BINARY, UNIFORM_BINARY} },
+        { STD128_CircuitBootstrap_CMUX_1_SUB1, {54, 4096,      571,        1024,  STD_DEV,  1 << 26,   1,    1 << 17,   2,    1 << 28,    1,    1 << 3,   4,   1,   UNIFORM_BINARY, UNIFORM_BINARY} },
+        { STD128_CircuitBootstrap_CMUX_2, {54,      4096,      571,        1024,  STD_DEV,  1 << 17,   2,    1 << 17,   2,    1 << 28,    1,    1 << 3,   4,   0,   UNIFORM_BINARY, UNIFORM_BINARY} },
+        { STD128_CircuitBootstrap_CMUX_3, {54,      4096,      571,        1024,  STD_DEV,  1 << 17,   2,    1 << 17,   2,    1 << 19,    2,    1 << 3,   4,   0,   UNIFORM_BINARY, UNIFORM_BINARY} },
+        { STD128_CircuitBootstrap_CMUX_4, {54,      4096,      571,        1024,  STD_DEV,  1 << 17,   2,    1 << 13,   3,    1 << 19,    2,    1 << 3,   4,   0,   UNIFORM_BINARY, UNIFORM_BINARY} },
+        { STD128_CircuitBootstrap_CMUX_5, {54,      4096,      571,        1024,  STD_DEV,  1 << 17,   2,    1 << 11,   4,    1 << 19,    2,    1 << 3,   4,   0,   UNIFORM_BINARY, UNIFORM_BINARY} },
     });
 
     auto search = CircuitParamsMap.find(set);
